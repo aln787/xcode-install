@@ -34,24 +34,8 @@ module XcodeInstall
       def validate!
         super
         
-        osx_version = `sw_vers -productVersion`.delete!("\n")
-        version_parts = osx_version.split('.')
-
-        major = version_parts[0].to_i
-        minor = version_parts[1].to_i
-        patch = version_parts[2].to_i
-
-        errorMsg = "An OS X version >10.11.4 is required for xcode 8, you have #{osx_version}."
-
-        if minor < 12
-          fail Informative, errorMsg
-        elsif minor == 11
-          if patch < 8
-            fail Informative, errorMsg
-          end
-        end
-        
         help! 'A VERSION argument is required.' unless @version
+        fail Informative, "An OS X version >10.11.4 is required for xcode 8." if @installer.os_version_compatibility_issue?(@version)
         fail Informative, "Version #{@version} already installed." if @installer.installed?(@version) && !@force
         fail Informative, "Version #{@version} doesn't exist." unless @url || @installer.exist?(@version)
         fail Informative, "Invalid URL: `#{@url}`" unless !@url || @url =~ /\A#{URI.regexp}\z/
